@@ -1,68 +1,43 @@
+/*
+ * Main menu on load
+ */
 window.onload = function() {
-
-    var version = null, today = new Date();
-
-    // Fix for cache
-    if (gameContainer.env == 'dev') {
-        version = today.getDay() + "_" + today.getHours() + "_" + today.getSeconds();
-    } else {
-        version = gameContainer.gameVersion;
-    }
-    ;
-
-    // start Crafty
-    Crafty.init(800, 400);
-    Crafty.canvas.init();
-
-    require(["src/sprites.js?v=" + version + "", "src/config.js?v=" + version + "", ], function() {
-        // Create Sprites
-        var sprites = new Sprites();
-        sprites.create();
-
-        // Load config
-        gameContainer['conf'] = new Config({});
-
-        // the loading screen - that will be display while assets loaded
-        Crafty.scene("loading", function() {
-            // clear scene and interface
-            sc = [];
-            infc = [];
-
-            var loadingText = Crafty.e("2D, " + gameContainer.conf.get('renderType') + ", Text").attr({
-                w: 500,
-                h: 20,
-                x: ((Crafty.viewport.width) / 2),
-                y: (Crafty.viewport.height / 2),
-                z: 2
-            }).text('Loading...').textColor('#000').textFont({
-                'size': '24px',
-                'family': 'Arial'
-            });
-
-            // load takes an array of assets and a callback when complete
-            Crafty.load(sprites.getPaths(), function() {
-                // array with local components
-                var elements = ["src/components/MouseHover.js?v=" + version + "", "src/entities/base/BaseEntity.js?v=" + version + "", ];
-
-                // when everything is loaded, run the main scene
-                require(elements, function() {
-                    loadingText.destroy();
-                    if (gameContainer.scene != undefined) {
-                        Crafty.scene(gameContainer.scene);
+    Crafty.init(640, 480);
+    Crafty.load(['gfx/play.png', 'gfx/presents.png', 'gfx/exit.png', 'gfx/z-crew.png', 'gfx/header.png'], function() {
+        Crafty.scene('menu', function() {
+            Crafty.background('#000');
+            setTimeout(function() {
+                Crafty.e("2D, DOM, Image").attr({x: 240, y: 10}).image('gfx/z-crew.png');
+            }, 500);
+            setTimeout(function() {
+                Crafty.e("2D, DOM, Image").attr({x: 190, y: 50}).image('gfx/presents.png');
+            }, 1000);
+            setTimeout(function() {
+                Crafty.e("2D, DOM, Image").attr({x: 170, y: 150}).image('gfx/header.png');
+            }, 1500);
+            setTimeout(function() {
+                Crafty.e("2D, DOM, Image, KeyBoard, Mouse").attr({x: 242, y: 300}).image('gfx/play.png').bind('KeyDown', function(e) {
+                    if (e.keyCode === Crafty.keys['P']) {
+                        loadLevel(1);
                     }
                 });
-            }, function(e) {
-                loadingText.text('Loading (' + (e.percent.toFixed(0)) + '%)');
-            });
+                Crafty.e("2D, DOM, Image").attr({x: 242, y: 350}).image('gfx/exit.png').requires('KeyBoard').bind('KeyDown', function(e) {
+                    if (e.keyCode === Crafty.keys['E']) {
+                        Crafty.scene("menu");
+                    }
+                });
+            }, 2000);
         });
+        Crafty.scene("menu");
+    });
 
-        // declare all scenes
-        var scenes = ["src/scenes/main.js?v=" + version + "", "src/scenes/map_1.js?v=" + version + ""];
+};
 
-        require(scenes, function() {
-        });
+/*
+ * Level loader
+ */
+window.loadLevel = function(level) {
+    Crafty.load([mapConfig[level].map_file, mapConfig[level].map_tileset], function() {
 
-        // automatically play the loading scene
-        Crafty.scene("loading");
     });
 };

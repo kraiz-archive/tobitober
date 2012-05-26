@@ -1,6 +1,17 @@
 import json, os, re
 
-out = open('maps.js', 'w')
+
+def cut_out(map_i, after, until):
+    f = open('map_%d.bb' % map_i, 'r')
+    start = False
+    for line in f.readlines():
+        if start and re.match(until, line):
+            break
+        if start:
+            yield line
+        if re.match(after, line):
+            start = True
+    f.close()
 
 map_geo = {
     1: (160, 20),
@@ -9,18 +20,33 @@ map_geo = {
     4: (100, 15)
 }
 
-for map_i in range(1,5):
+bound_types = {
+    0: 'free',
+    4: 'solid',
+    15: 'death',
+    128: ''
+}
 
+for map_i in range(1,5):
+    
     tiles = [
         tile 
-        for line in open('map_%d.bb' % map_i, 'r').readlines()[18:298]
+        for line in cut_out(map_i, r'^\.level_texMapData%d$' % map_i, r'^$')
         for tile in re.findall(r'(\d{1,2})-\d', line)
     ]
     
-    # map the ordered list into a dict('x,y'->tile_id)
-    map = {'%d,%d' % (index % 160, index % 20): tile for index, tile in enumerate(tiles)}
+    bounds = [
+        bound
+        for line in cut_out(map_i, r'^\.level_boundMapData%d$' % map_i, r'^$')
+    ]
+
+    
+    # map the ordered list into a dict('x,y'->map_<i>_<tile id>)
+    map = {
+        'tiles': {'%d,%d' % (index % map_geo[map_i][0], index % map_geo[map_i][1]): 'map_%d_%s' % (map_i, tile) for index, tile in enumerate(tiles)}
+    }
     
     # print as js assignment to stdout
-    out.write('\nmap_%d = %s' % (map_i, json.dumps(map)))
-
-out.close()
+    out = open('map_%d.js' % map_i, 'w')
+    out.write('var map = %s;\n' % json.dumps(map))
+    out.close()
