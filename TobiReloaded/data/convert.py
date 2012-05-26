@@ -24,7 +24,7 @@ bound_types = {
     0: 'free',
     4: 'solid',
     15: 'death',
-    128: ''
+    128: 'level_end'
 }
 
 for map_i in range(1,5):
