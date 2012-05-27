@@ -35,7 +35,7 @@ window.onload = function() {
             }, 2000);
         });
         //Crafty.scene('menu');
-        loadLevel(1);
+        loadLevel(2);
     });
 
 };
@@ -45,6 +45,7 @@ window.onload = function() {
  */
 window.loadSprites = function() {
     for ( var sprite in mapConfig['common'].sprites) {
+        log('Loading Srpite: ' + sprite);
         Crafty.sprite(32, sprite, mapConfig['common'].sprites[sprite]);
     }
 };
@@ -57,8 +58,8 @@ window.loadLevel = function(level) {
     Crafty.load([mapConfig[level].tileset.file].concat(mapConfig[level].files, mapConfig['common'].files), function() {
         Crafty.scene('level_' + level, function() {
             Crafty.background('#000');
-            loadMap(level);
             loadSprites();
+            loadMap(level);
             loadTobi();
         });
         Crafty.scene('level_' + level);
@@ -75,16 +76,49 @@ window.loadMap = function(level) {
         spriteMapping['m' + level + '_' + (i+1)] = [i % mapConfig[level].tileset.width, Math.floor(i/mapConfig[level].tileset.width)];
     }
     Crafty.sprite(32, mapConfig[level].tileset.file, spriteMapping);
-    // spawn the map entities
+
     var map = MAPS[level],
         compontents, tile;
+
+    // spawn the map entities
     for (i = 0; i < map.tiles.length; i++) {
         tile = map.tiles[i];
         compontents = ['2D', config.renderType, 'm' + level + '_' + tile];
-        if (mapConfig[level].solids.indexOf(tile) > 0) {
+        if (mapConfig[level].solids.indexOf(tile) >= 0) {
             compontents = compontents.concat(['Solid', 'Collision']);
         }
-        CURRENT_MAP.push(Crafty.e(compontents.join(',')).attr({x: i % map.width * 32, y: Math.floor(i/map.width) * 32}));
+        CURRENT_MAP.push(
+            Crafty.e(compontents.join(','))
+                  .attr({
+                      x: i % map.width * 32,
+                      y: Math.floor(i/map.width) * 32
+                  })
+        );
+    }
+    // onions
+    for ( i = 0; i < map.onions.length; i++) {
+        var onion = map.onions[i];
+        CURRENT_MAP.push(
+            Crafty.e('2D, ' + config.renderType + ', onion')
+                  .attr({
+                      x: onion[0] * 32,
+                      y: onion[1] * 32,
+                      z: 2
+                  })
+        );
+    }
+    // monsters
+    for ( i = 0; i < map.monsters.length; i++) {
+        var monster = map.monsters[i];
+        log('2D, ' + config.renderType + ', ' + monster[2], monster[0], monster[1]);
+        CURRENT_MAP.push(
+            Crafty.e('2D, ' + config.renderType + ', ' + monster[2])
+                  .attr({
+                      x: monster[0] * 32,
+                      y: monster[1] * 32,
+                      z: 2
+                  })
+        );
     }
     log('Map of level ' + level + ' loaded.');
 };
@@ -99,7 +133,7 @@ window.loadTobi = function() {
         .gravity('Solid')
         .gravityConst(0.5)
         .bind('Moved',function(from) {
-            if(this.hit('Solid')){
+            if(this.hit('Solid')) {
                 this.attr({x: from.x, y:from.y});
             }
         })

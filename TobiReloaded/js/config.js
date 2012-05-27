@@ -16,10 +16,28 @@ var config = {
 var mapConfig = {
     common: {
         files: ['sfx/batman.mp3', 'sfx/tobi_jump.mp3', 'sfx/tobi_tot.mp3', 'sfx/zwiebel.mp3',
-                'gfx/info_msg.png', 'gfx/scoreboard.png', 'gfx/tobi.png'],
+                'gfx/info_msg.png', 'gfx/scoreboard.png', 'gfx/tobi.png', 'gfx/zwiebel.png'],
         sprites: {
             'gfx/tobi.png': {
-                tobi: [0,0],
+                tobi: [0, 0],
+            },
+            'gfx/zwiebel.png': {
+                onion: [0, 0],
+            },
+            'gfx/robot.png': {
+                robot: [0, 0],
+            },
+            'gfx/schnappi.png': {
+                schnappi: [0, 0],
+            },
+            'gfx/wasser.png': {
+                water: [0, 0],
+            },
+            'gfx/wasserviech.png': {
+                kroko: [0, 0],
+            },
+            'gfx/geist.png': {
+                ghost: [0, 0],
             }
         }
     },
@@ -29,7 +47,7 @@ var mapConfig = {
             width: 10,
             elements: 29
         },
-        solids: [0, 6, 7, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 27],
+        solids: [4, 6, 7, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 27],
         files: ['sfx/schnappi.mp3', 'gfx/schnappi.png']
     },
     2: {
@@ -53,10 +71,10 @@ var mapConfig = {
     4: {
         tileset: {
             file: 'gfx/tileset_4.png',
-            width: 10,
-            elements: 29
+            width: 7,
+            elements: 6
         },
-        solids: [4, 6, 7, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 27],
+        solids: [2, 5],
         files: ['sfx/schnappi.mp3', 'gfx/schnappi.png']
     }
 };
