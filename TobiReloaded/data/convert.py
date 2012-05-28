@@ -22,15 +22,16 @@ map_geo = {
     4: 100
 }
 
+# type_id -> crafty component name
 monster_types = {
-    1: 'water',
-    2: 'schnappi',
-    3: 'kroko',
-    4: 'ghost',
-    5: 'nsa',
-    6: 'robot',
-    7: 'zwiebli',
-    8: 'zwiablo'
+    1: 'Water',
+    2: 'Schnappi',
+    3: 'Kroko',
+    4: 'Ghost',
+    5: 'Nsa',
+    6: 'Robot',
+    7: 'Zwiebli',
+    8: 'Zwiablo'
 }
 
 out = open('maps.js', 'w')

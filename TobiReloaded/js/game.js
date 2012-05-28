@@ -1,4 +1,5 @@
-var CURRENT_MAP = [],
+var TIME, POINTS, LIVES,
+    CURRENT_MAP = [],
     TOBI = null;
 
 /*
@@ -13,29 +14,35 @@ window.onload = function() {
         Crafty.scene('menu', function() {
             Crafty.background('#000');
             setTimeout(function() {
-                Crafty.e('2D, ' + config.renderType + ', Image').attr({x: 240, y: 10}).image('gfx/z-crew.png');
+                Crafty.e(E + 'Image').attr({x: 240, y: 10}).image('gfx/z-crew.png');
             }, 500);
             setTimeout(function() {
-                Crafty.e('2D, ' + config.renderType + ', Image').attr({x: 190, y: 50}).image('gfx/presents.png');
+                Crafty.e(E + 'Image').attr({x: 190, y: 50}).image('gfx/presents.png');
             }, 1000);
             setTimeout(function() {
-                Crafty.e('2D, ' + config.renderType + ', Image').attr({x: 170, y: 150}).image('gfx/header.png');
+                Crafty.e(E + 'Image').attr({x: 170, y: 150}).image('gfx/header.png');
             }, 1500);
             setTimeout(function() {
-                Crafty.e('2D, ' + config.renderType + ', Image, KeyBoard, Mouse').attr({x: 242, y: 300}).image('gfx/play.png').bind('KeyDown', function(e) {
+                Crafty.e(E + 'Image, KeyBoard').attr({x: 242, y: 300}).image('gfx/play.png').bind('KeyDown', function(e) {
                     if (e.keyCode === Crafty.keys['P']) {
+                        POINTS = 0;
+                        LIVES = 3;
+                        TIME = new Date();
                         loadLevel(1);
                     }
                 });
-                Crafty.e('2D, ' + config.renderType + ', Image').attr({x: 242, y: 350}).image('gfx/exit.png').requires('KeyBoard').bind('KeyDown', function(e) {
+                Crafty.e(E + 'Image, KeyBoard').attr({x: 242, y: 350}).image('gfx/exit.png').bind('KeyDown', function(e) {
                     if (e.keyCode === Crafty.keys['E']) {
                         Crafty.scene('menu');
                     }
                 });
             }, 2000);
         });
-        //Crafty.scene('menu');
-        loadLevel(1);
+        Crafty.scene('menu');
+//        POINTS = 0;
+//        LIVES = 3;
+//        TIME = new Date();
+//        loadLevel(4);
     });
 
 };
@@ -45,7 +52,11 @@ window.onload = function() {
  */
 window.loadSpritesAndSounds = function() {
     for (var sprite in mapConfig['common'].sprites) {
-        Crafty.sprite(32, sprite, mapConfig['common'].sprites[sprite]);
+        var value = mapConfig['common'].sprites[sprite];
+        Crafty.sprite(value[0], sprite, value[1]);
+    }
+    for (var sprite in mapConfig['common'].sprites) {
+
     };
     log('Loaded ' + Object.keys(mapConfig['common'].sprites).length + ' sprites');
     Crafty.audio.add(mapConfig['common'].sounds);
@@ -59,15 +70,17 @@ window.loadLevel = function(level) {
     log('Loading level ' + level);
 
     var files = Object.keys(mapConfig['common'].sprites);
+    files.concat(mapConfig['common'].files);
     files.concat([mapConfig[level].tileset.file]);
     files.concat(mapConfig[level].files);
     Crafty.load(files, function() {
         Crafty.scene('level_' + level, function() {
-            Crafty.background('#000');
+            Crafty.background(mapConfig[level].background);
+            $('#cr-stage div').css('background', mapConfig[level].background);
             loadSpritesAndSounds();
             loadMap(level);
-            loadTobi();
-            //Crafty.audio.play('batman');
+            loadScoreBoard(level);
+            Crafty.audio.play('batman', -1);
         });
         Crafty.scene('level_' + level);
     });
@@ -85,97 +98,94 @@ window.loadMap = function(level) {
     Crafty.sprite(32, mapConfig[level].tileset.file, spriteMapping);
 
     var map = MAPS[level],
-        compontents, tile;
+        element, component;
 
     // spawn the map entities
     for (i = 0; i < map.tiles.length; i++) {
-        tile = map.tiles[i];
-        if (mapConfig[level].ignore.indexOf(tile) < 0) {
-            compontents = ['2D', config.renderType, 'm' + level + '_' + tile];
-            if (mapConfig[level].solids.indexOf(tile) >= 0) {
-                compontents = compontents.concat(['Solid', 'Collision']);
+        element = map.tiles[i];
+        if (mapConfig[level].ignore.indexOf(element) < 0) {
+            component = Crafty.e(E + 'm' + level + '_' + element).attr({
+                x: i % map.width * 32,
+                y: Math.floor(i/map.width) * 32
+            });
+            if (mapConfig[level].solids.indexOf(element) >= 0 ){
+                component.requires('Solid, Collision, WiredHitBox').collision();
             }
-            CURRENT_MAP.push(
-                Crafty.e(compontents.join(','))
-                      .attr({
-                          x: i % map.width * 32,
-                          y: Math.floor(i/map.width) * 32
-                      })
-            );
+            CURRENT_MAP.push(component);
         }
     }
     log('Loaded ' + CURRENT_MAP.length + ' level blocks');
+    // Load Tobi, NOTE: There's no loop around it, cuz "There can be only one"
+    TOBI = Crafty.e(E + 'Tobi').attr({
+        x: Crafty.viewport.width/2,
+        y: Crafty.viewport.height/2,
+        z: 2
+    });
+    log('Loaded Tobi');
     // onions
     for ( i = 0; i < map.onions.length; i++) {
-        var onion = map.onions[i];
+        element = map.onions[i];
         CURRENT_MAP.push(
-            Crafty.e('2D, ' + config.renderType + ', onion, SpriteAnimation')
-                  .attr({
-                      x: onion[0] * 32,
-                      y: onion[1] * 32,
-                      z: 2
-                  })
-                  .animate('onion_waggling', 0, 0, 3)
-                  .animate('onion_waggling', 25, -1)
+            Crafty.e(E + 'Onion').attr({
+                x: element[0] * 32,
+                y: element[1] * 32,
+                z: 2
+           })
         );
     }
     log('Loaded ' + i + ' onions');
     // monsters
     for ( i = 0; i < map.monsters.length; i++) {
-        var monster = map.monsters[i];
-        var entity = Crafty.e('2D, SpriteAnimation,' + config.renderType + ', ' + monster[2]);
-        entity.attr({x: monster[0] * 32, y: monster[1] * 32, z: 2});
-        if(monster[2] === 'water'){
-            entity.animate('water_wobling', 0, 0, 2);
-            entity.animate('water_wobling', Crafty.math.randomInt(11, 24), -1);
+        element = map.monsters[i];
+        var monster =  Crafty.e(E + element[2]).attr({
+            x: element[0] * 32,
+            y: element[1] * 32,
+            z: 2,
+        });
+        if (config.monsters.runner.types.indexOf(element[2]) >= 0) {
+            monster.runner(element[3] > 0);
         }
-        CURRENT_MAP.push(entity);
+        if (config.monsters.clompable.indexOf(element[2]) >= 0) {
+            monster.requires('Clompable');
+        }
+        if (config.monsters.follower.types.indexOf(element[2]) >= 0) {
+            monster.follow(TOBI);
+        }
+        CURRENT_MAP.push(monster);
     }
     log('Loaded ' + i + ' monsters');
     log('Map of level ' + level + ' loaded.');
 };
 
 /**
- * Our hero :D
+ * This funny thing above, where the points are
  */
-window.loadTobi = function() {
-    TOBI = Crafty.e('2D, ' + config.renderType + ', tobi, SpriteAnimation, Twoway, Gravity, Collision, Keyboard')
-        .attr({x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, z: 2, _falling: true})
-        .twoway(5, 12)
-        .gravity('Solid')
-        .gravityConst(0.5)
-        .bind('Moved',function(from) {
-            if(this.hit('Solid')) {
-                this.attr({x: from.x, y:from.y});
-            }
-        })
-        .bind('EnterFrame', function() {
-            // Camera Stuff
-            var vp = {
-                x: Crafty.viewport.width/2 - this.x - this.w/2,
-                y: Crafty.viewport.height/2 - this.y - this.h/2
-            };
-            if (vp.x != Crafty.viewport.x){Crafty.viewport.scroll('_x', vp.x);}
-            if (vp.y != Crafty.viewport.y){Crafty.viewport.scroll('_y', vp.y);}
-
-            // Sprite Animation
-            var left = this.isDown('LEFT_ARROW') || this.isDown('A'),
-                right = this.isDown('RIGHT_ARROW') || this.isDown('S'),
-                up = this._up,
-                stand = !left && !right && !up;
-            if (!left && !right) {
-                left = this._currentReelId.split('_')[2] === 'left';
-            }
-            var anim = 'tobi_' + (stand ? 'stand' : up ? 'jump' : 'walk') + '_' + (left ? 'left' : 'right');
-            if (!this.isPlaying(anim)) {
-                this.stop().animate(anim, 10, -1);
-            }
-        })
-        .animate('tobi_stand_right', 0, 0, 0)
-        .animate('tobi_stand_left', 4, 0, 4)
-        .animate('tobi_walk_right', 0, 0, 3)
-        .animate('tobi_walk_left', 4, 0, 7)
-        .animate('tobi_jump_left', 8, 0, 8)
-        .animate('tobi_jump_right', 9, 0, 9)
-        .animate('tobi_jump_right', 10, -1);
+window.loadScoreBoard = function(level) {
+    var followViewport = function() {
+        this.x = -Crafty.viewport.x;
+        this.y = -Crafty.viewport.y;
+    };
+    var zeroPrefixed = function(number) {
+        return number < 9 ? '0' + number : '' +number;
+    };
+    Crafty.e(E + 'Image')
+          .image('gfx/scoreboard.png')
+          .bind('EnterFrame', followViewport);
+    Crafty.e('HTML, Time')
+          .attr({x:0, y:0, w:640, h:32})
+          .bind('EnterFrame', followViewport)
+          .bind('EnterFrame', function() {
+              var date = new Date(new Date() - TIME);
+              $('#time').text(zeroPrefixed(date.getMinutes())+ ':' + zeroPrefixed(date.getSeconds()));
+          })
+          .replace('<div id="scoreboard">' +
+                       '<div id="level">' + mapConfig[level].name + '</div>' +
+                       '<div id="points">Punkte: '+ POINTS + '</div>' +
+                       '<div id="lives">' + LIVES + '</div>' +
+                       '<div id="time">00:00</div>' +
+                   '</div>');
+};
+window.addPoints = function(points) {
+    POINTS += points;
+    $('#points').text('Punkte: '+ POINTS);
 };

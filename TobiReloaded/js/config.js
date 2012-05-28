@@ -7,45 +7,78 @@ window.log = function() {
 var config = {
    debug: true,
    renderType: Crafty.support.canvas ? 'Canvas' : 'DOM',
+   stdComponents: '2D, ' + Crafty.support.canvas ? 'Canvas' : 'DOM',
    stageWidth: 640,
    stageHeight: 480,
    camOffsetX: 100,
-   camOffsetY: 100
+   camOffsetY: 100,
+   monsters: {
+       water: {
+           min: 10,
+           max: 24
+       },
+       clompable: ['Schnappi', 'Kroko', 'Nsa'],
+       runner: {
+           types: ['Schnappi', 'Kroko', 'Nsa', 'Robot', 'Zwiablo'],
+           speed: 2
+       },
+       follower: {
+           types: ['Ghost'],
+           speed: 1
+       }
+   }
 };
+
+var E = '2D, ' + config.renderType + ', ';
 
 var mapConfig = {
     common: {
+        files: ['gfx/scoreboard.png'],
         sprites: {
-            'gfx/tobi.png': {
-                tobi: [0, 0],
-            },
-            'gfx/zwiebel.png': {
-                onion: [0, 0],
-            },
-            'gfx/robot.png': {
-                robot: [0, 0],
-            },
-            'gfx/schnappi.png': {
-                schnappi: [0, 0],
-            },
-            'gfx/wasser.png': {
-                water: [0, 0],
-            },
-            'gfx/wasserviech.png': {
-                kroko: [0, 0],
-            },
-            'gfx/geist.png': {
-                ghost: [0, 0],
-            }
+            'gfx/tobi.png': [32, {
+                spriteTobi: [0, 0],
+            }],
+            'gfx/zwiebel.png': [32, {
+                spriteOnion: [0, 0],
+            }],
+            'gfx/robot.png': [32, {
+                spriteRobot: [0, 0],
+            }],
+            'gfx/schnappi.png': [32, {
+                spriteSchnappi: [0, 0],
+            }],
+            'gfx/wasser.png': [32, {
+                spriteWater: [0, 0],
+            }],
+            'gfx/wasserviech.png': [32, {
+                spriteKroko: [0, 0],
+            }],
+            'gfx/nsa.png': [32, {
+                spriteNsa: [0, 0],
+            }],
+            'gfx/geist.png': [32, {
+                spriteGhost: [0, 0],
+            }],
+            'gfx/zwiebli.png': [32, {
+                spriteZwiebli: [0, 0],
+            }],
+            'gfx/zwiablo.png': [128, {
+                spriteZwiablo: [0, 0],
+            }]
         },
         sounds: {
-            batman: 'sfx/batman.mp3',
-            onion: 'sfx/zwiebel.mp3',
-            jump: 'sfx/tobi_jump.mp3',
-            dead: 'sfx/tobi_tot.mp3'
+            batman: ['sfx/batman.mp3', 'sfx/batman.ogg'],
+            onion: ['sfx/zwiebel.mp3', 'sfx/zwiebel.ogg'],
+            schnappi: ['sfx/schnappi.mp3', 'sfx/schnappi.ogg'],
+            kroko: ['sfx/wasserviech.mp3', 'sfx/wasserviech.ogg'],
+            nsa: ['sfx/nsa.mp3', 'sfx/nsa.ogg'],
+            jump: ['sfx/tobi_jump.mp3', 'sfx/tobi_jump.ogg'],
+            dead: ['sfx/tobi_tot.mp3', 'sfx/tobi_tot.ogg']
         }
     },
     1: {
+        name: 'Strand Hawaii',
+        background: '#000',
         tileset: {
             file: 'gfx/tileset_1.png',
             width: 10,
@@ -56,6 +89,8 @@ var mapConfig = {
         files: ['gfx/schnappi.png']
     },
     2: {
+        name: 'Kreuzfahrtschiff',
+        background: '#000',
         tileset: {
             file: 'gfx/tileset_2.png',
             width: 9,
@@ -66,16 +101,20 @@ var mapConfig = {
         files: ['gfx/schnappi.png']
     },
     3: {
+        name: 'Area51 Bunker',
+        background: 'url(gfx/bg3.png)',
         tileset: {
             file: 'gfx/tileset_3.png',
             width: 8,
             elements: 32
         },
-        ignore: [1, 21],
+        ignore: [21],
         solids: [19, 20, 22, 28, 29, 31],
-        files: ['gfx/schnappi.png']
+        files: ['gfx/bg3.png', 'gfx/schnappi.png']
     },
     4: {
+        name: 'Märzdorf',
+        background: 'url(gfx/background_map_4.png)',
         tileset: {
             file: 'gfx/tileset_4.png',
             width: 7,
